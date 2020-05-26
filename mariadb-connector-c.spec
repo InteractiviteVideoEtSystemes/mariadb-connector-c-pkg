@@ -27,7 +27,7 @@
 %bcond_with sqlite3
 Name:           MariaDB
 Version:        %{mariadb_version}
-Release:        2.ives%{?dist}
+Release:        4.ives%{?dist}
 Summary:        MariaDB connector in C
 License:        LGPL-2.1-or-later
 Group:          Development/Libraries/C and C++
@@ -137,6 +137,10 @@ cmake	--build . --target install
 install -Dpm 0644 include/ma_config.h \
   %{buildroot}%{_includedir}/mysql/my_config.h
 
+# add a compatibility symlink
+ln -s mariadb_config %{buildroot}%{_bindir}/mysql_config
+ln -s mariadb_version.h %{buildroot}%{_includedir}/mysql/mysql_version.h
+
 %post   -n %{libname}-libs -p /sbin/ldconfig
 %postun -n %{libname}-libs -p /sbin/ldconfig
 
@@ -157,6 +161,7 @@ install -Dpm 0644 include/ma_config.h \
 
 %files -n %{libname}-devel
 %{_bindir}/mariadb_config
+%{_bindir}/mysql_config
 %{_includedir}/mysql/*
 %{_libdir}/pkgconfig/libmariadb.pc
 %{_libdir}/libmariadbclient.a

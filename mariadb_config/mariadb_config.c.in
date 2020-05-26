@@ -5,11 +5,12 @@
 
 static char *mariadb_progname;
 
-#define INCLUDE "-I/usr/include/mariadb -I/usr/include/mariadb/mysql"
-#define LIBS    " -lmariadb"
+#define INCLUDE "-I/usr/include/mysql -I/usr/include/mysql/mysql"
+#define LIBS    " -lmariadbclient"
+#define LIBS_R  " -lmariadbclient_r"
 #define LIBS_SYS "-ldl -lm -lpthread -lssl -lcrypto"
 #define CFLAGS  INCLUDE
-#define VERSION "10.4.3"
+#define VERSION "10.3.3"
 #define CC_VERSION "3.1.9"
 #define PLUGIN_DIR "/usr/lib64/mariadb/plugin"
 #define SOCKET  "/tmp/mysql.sock"
@@ -44,7 +45,7 @@ static const char *values[]=
   NULL,
   INCLUDE,
   LIBS,
-  LIBS,
+  LIBS_R,
   LIBS_SYS,
   VERSION,
   CC_VERSION,

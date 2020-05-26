@@ -7,7 +7,7 @@
 #
 
 prefix=/usr
-includedir=${prefix}/include/mariadb/
+includedir=${prefix}/include/mysql/
 libdir=${prefix}/lib64/
 
 Name: libmariadb
