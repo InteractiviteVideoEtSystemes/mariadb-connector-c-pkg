@@ -25,9 +25,9 @@
 %define _rundir %{_localstatedir}/run
 %endif
 %bcond_with sqlite3
-Name:           mariadb-connector-c
+Name:           MariaDB
 Version:        %{mariadb_version}
-Release:        1.ives%{?dist}
+Release:        2.ives%{?dist}
 Summary:        MariaDB connector in C
 License:        LGPL-2.1-or-later
 Group:          Development/Libraries/C and C++
@@ -43,11 +43,11 @@ C or C++ to MariaDB and MySQL databases. This is a different
 implementation from the traditional libmariadbclient/libmysqlclient
 that is shipped with mariadb-server/mysql-server, but the API is the same.
 
-%package -n %{libname}%{sover}
+%package -n %{libname}-libs
 Summary:        MariaDB connector in C
 Group:          System/Libraries
 
-%description -n %{libname}%{sover}
+%description -n %{libname}-libs
 MariaDB Connector is used to connect applications developed in
 C or C++ to MariaDB and MySQL databases. This is a different
 implementation from the traditional libmariadbclient/libmysqlclient
@@ -83,7 +83,6 @@ This package holds the runtime components with private API.
 %package -n %{libname}-devel
 Summary:        Development files for the MariaDB Connector C API
 Group:          Development/Libraries/C and C++
-Requires:       %{libname}%{sover} = %{version}
 Requires:       pkgconfig(openssl)
 Requires:       pkgconfig(zlib)
 # mysql-devel needs to be provided as some pkgs still depend on it
@@ -112,7 +111,7 @@ FFLAGS="${FFLAGS:-%optflags}" ; export FFLAGS
 cmake \
         -DCMAKE_VERBOSE_MAKEFILE=ON \
         -DCMAKE_INSTALL_PREFIX:PATH=%{buildroot}%{_prefix} \
-        -DINSTALL_INCLUDEDIR=%{buildroot}%{_includedir} \
+        -DINSTALL_INCLUDEDIR=%{buildroot}%{_includedir}/mysql \
         -DINSTALL_LIBDIR=%{buildroot}%{_libdir} \
 %if %{with sqlite3}
   -DWITH_SQLITE:BOOL=ON \
@@ -138,12 +137,10 @@ cmake	--build . --target install
 install -Dpm 0644 include/ma_config.h \
   %{buildroot}%{_includedir}/mysql/my_config.h
 
-%post   -n %{libname}%{sover} -p /sbin/ldconfig
-%post   -n %{libname}private -p /sbin/ldconfig
-%postun -n %{libname}%{sover} -p /sbin/ldconfig
-%postun -n %{libname}private -p /sbin/ldconfig
+%post   -n %{libname}-libs -p /sbin/ldconfig
+%postun -n %{libname}-libs -p /sbin/ldconfig
 
-%files -n %{libname}%{sover}
+%files -n %{libname}-libs
 %{_libdir}/libmariadb.so
 %{_libdir}/libmariadb.so.%{sover}
 
@@ -160,7 +157,7 @@ install -Dpm 0644 include/ma_config.h \
 
 %files -n %{libname}-devel
 %{_bindir}/mariadb_config
-%{_includedir}/*
+%{_includedir}/mysql/*
 %{_libdir}/pkgconfig/libmariadb.pc
 %{_libdir}/libmariadbclient.a
 %{_libdir}/libmysqlclient.a
@@ -168,5 +165,6 @@ install -Dpm 0644 include/ma_config.h \
 %{_libdir}/libmariadb.so
 %{_libdir}/libmysqlclient.so
 %{_libdir}/libmysqlclient_r.so
+
 %changelog
 
