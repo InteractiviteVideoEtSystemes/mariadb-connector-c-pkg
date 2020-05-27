@@ -14,7 +14,14 @@ pipeline {
         sh "./install.ksh rpm nosign"
       }
     }
-  
+ 
+    stage('Install packages') {
+      steps {
+        sh "sudo yum remove -y MariaDB-devel MariaDB-shared"
+        sh "sudo yum localinstall -y MariaDB-develi*.rpm MariaDB-shared*.rpm"
+      }
+    }
+ 
   stage('E-mail and archive') {
     when {
       buildingTag()
