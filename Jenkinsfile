@@ -21,7 +21,7 @@ pipeline {
     stage('Install packages') {
       steps {
 	sh """
-        sudo yum remove -y MariaDB-devel MariaDB-shared
+        sudo yum remove -y MariaDB-devel MariaDB-shared mysql
         sudo yum localinstall -y MariaDB-devel*.rpm MariaDB-shared*.rpm
 	"""
       }
