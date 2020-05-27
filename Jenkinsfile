@@ -11,7 +11,7 @@ pipeline {
   stages {
     stage('Build RPM') {
       steps {
-        sh "pwd; ls;./install.ksh rpm nosign"
+        sh "./install.ksh rpm nosign"
       }
     }
  
