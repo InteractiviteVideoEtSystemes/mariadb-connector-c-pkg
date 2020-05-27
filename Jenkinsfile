@@ -28,6 +28,9 @@ pipeline {
     }
  
   stage('E-mail and archive') {
+    when {
+      buildingTag()
+    }
     steps {
       slackSuccessInstalled()
       emailext(attachmentsPattern: 'vrn.html', body: 'Livraison de <strong>mariadb-connector-c $BRANCH_NAME</strong> : <br/><br/>       Lien GIT : <a href="http://git.ives.fr/plateformes/mariadb-connector-c/tree/$BRANCH_NAME">http://git.ives.fr/plateformes/kamailioconf/tree/$BRANCH_NAME</a><br/><br/> Lien du Build : <a href="$RUN_DISPLAY_URL">$RUN_DISPLAY_URL</a>       <br/><br/>       Cordialement,<br/>       Jenkins', mimeType: 'text/html', replyTo: 'devplateforme@ives.fr', subject: '[mariadb-connector-c] Livraison $BRANCH_NAME', recipientProviders: [requestor()], to: "jenkins@ives.fr")
