@@ -11,14 +11,19 @@ pipeline {
   stages {
     stage('Build RPM') {
       steps {
-        sh "./install.ksh rpm nosign"
+	sh """
+	sudo yum install -y cmake
+        ./install.ksh rpm nosign
+	"""
       }
     }
  
     stage('Install packages') {
       steps {
-        sh "sudo yum remove -y MariaDB-devel MariaDB-shared"
-        sh "sudo yum localinstall -y MariaDB-develi*.rpm MariaDB-shared*.rpm"
+	sh """
+        sudo yum remove -y MariaDB-devel MariaDB-shared
+        sudo yum localinstall -y MariaDB-devel*.rpm MariaDB-shared*.rpm
+	"""
       }
     }
  
