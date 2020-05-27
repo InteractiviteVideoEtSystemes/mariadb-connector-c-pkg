@@ -43,11 +43,11 @@ C or C++ to MariaDB and MySQL databases. This is a different
 implementation from the traditional libmariadbclient/libmysqlclient
 that is shipped with mariadb-server/mysql-server, but the API is the same.
 
-%package -n %{libname}-libs
+%package -n %{libname}-shared
 Summary:        MariaDB connector in C
 Group:          System/Libraries
 
-%description -n %{libname}-libs
+%description -n %{libname}-shared
 MariaDB Connector is used to connect applications developed in
 C or C++ to MariaDB and MySQL databases. This is a different
 implementation from the traditional libmariadbclient/libmysqlclient
@@ -141,10 +141,10 @@ install -Dpm 0644 include/ma_config.h \
 ln -s mariadb_config %{buildroot}%{_bindir}/mysql_config
 ln -s mariadb_version.h %{buildroot}%{_includedir}/mysql/mysql_version.h
 
-%post   -n %{libname}-libs -p /sbin/ldconfig
-%postun -n %{libname}-libs -p /sbin/ldconfig
+%post   -n %{libname}-shared -p /sbin/ldconfig
+%postun -n %{libname}-shared -p /sbin/ldconfig
 
-%files -n %{libname}-libs
+%files -n %{libname}-shared
 %{_libdir}/libmariadb.so
 %{_libdir}/libmariadb.so.%{sover}
 
