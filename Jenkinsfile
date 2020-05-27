@@ -7,7 +7,7 @@ import jenkins.model.*
 import hudson.tasks.test.AbstractTestResultAction
 
 pipeline {
-  agent any
+  agent centos6
   stages {
     stage('Build RPM') {
       steps {
