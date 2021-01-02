@@ -7,67 +7,84 @@ import jenkins.model.*
 import hudson.tasks.test.AbstractTestResultAction
 
 pipeline {
-  agent { label 'centos6' }
+  agent none
   stages {
-    stage('Build RPM') {
-      steps {
-	sh """
-	sudo yum install -y cmake
-        ./install.ksh rpm nosign
-	"""
-      }
-    }
+    stage('BuildAndInstall') {
+      matrix {
+        agent { label "${NODELABEL}" }
+        axes {
+           axis {
+               name 'NODELABEL'
+               values 'centos6', 'centos7'
+           }
+	}
+	stages {
+	   stage('Build RPM') { 
+
+               steps {
+	           sh """
+                   if ! type cmake
+	           then
+	              sudo yum install -y cmake
+                   fi
+                   ./install.ksh rpm nosign
+	           """
+              }
+           }
  
-    stage('Install packages') {
-      steps {
-	sh """
-        sudo yum remove -y MariaDB-devel MariaDB-shared mysql
-        sudo yum localinstall -y MariaDB-devel*.rpm MariaDB-shared*.rpm
-	"""
-      }
-    }
+           stage('Install packages') {
+               when {
+                   buildingTag()
+               }
+               steps {
+	           sh """
+                   sudo yum remove -y MariaDB-devel MariaDB-shared mysql
+                   sudo yum localinstall -y MariaDB-devel*.rpm MariaDB-shared*.rpm
+	           """
+               }
+           }
  
-  stage('E-mail and archive') {
-    when {
-      buildingTag()
-    }
-    steps {
-      slackSuccessInstalled()
-      emailext(attachmentsPattern: 'vrn.html', body: 'Livraison de <strong>mariadb-connector-c $BRANCH_NAME</strong> : <br/><br/>       Lien GIT : <a href="http://git.ives.fr/plateformes/mariadb-connector-c/tree/$BRANCH_NAME">http://git.ives.fr/plateformes/kamailioconf/tree/$BRANCH_NAME</a><br/><br/> Lien du Build : <a href="$RUN_DISPLAY_URL">$RUN_DISPLAY_URL</a>       <br/><br/>       Cordialement,<br/>       Jenkins', mimeType: 'text/html', replyTo: 'devplateforme@ives.fr', subject: '[mariadb-connector-c] Livraison $BRANCH_NAME', recipientProviders: [requestor()], to: "jenkins@ives.fr")
-      archiveArtifacts(artifacts: '*.rpm,vrn.html', onlyIfSuccessful: true)
-      script{
-        SLACKALREADYSENT=true
-      }
-    }
-  }
-}
+           stage('archive') {
+               when {
+                   buildingTag()
+               }
+               steps {
+                   archiveArtifacts(artifacts: '*.rpm,vrn.html', onlyIfSuccessful: true)
+               }
+           }
+        } // stages 
+        post {
+	   failure {
+              script {
+	        notifFail("Failed to build RPM on ${NODELABEL}")
+              }
+           }
+        }
+      } // matrix
+    } // stage('BuildAndInstall')
+  } // stages
   post {
-     failure {
-         script{
-                slackFail("An error occured")
-          }
-    }
     success {
         script{
-            if(!SLACKALREADYSENT){
-                slackSuccess()
-            }
+           notifSuccess()
         }
     }
   }
 }
 
-void slackFail(e)
+void notifFail(e)
 {
-  slackSend(message: ":x: *BUILD FAIL mariadb-connector-c $BRANCH_NAME* : ```${e}``` \n\n Lien du Build : <$RUN_DISPLAY_URL|JENKINS-#$BUILD_NUMBER> \n Cordialement, Jenkins", baseUrl: 'https://ives-workspace.slack.com/services/hooks/jenkins-ci/', channel: 'jenkins', color: 'danger', teamDomain: 'ives-workspace.slack.com', token: 'gcwQATpI47iPCfTcPCcdR4ZR')
+  office365ConnectorSend(message: "💔:  *BUILD FAIL asteriskv $BRANCH_NAME* : \n\n Lien du Build : <
+RUN_DISPLAY_URL|JENKINS-#$BUILD_NUMBER> \n \n Cordialement, Jenkins", status: 'Success', webhookUrl: 'https://outlook.office.com/webhook/a8d2a9bb-d91a-48b9-8774-a1907c4bce10@dda7df9a-8948-410e-8cd6-c830a3370b09/JenkinsCI/1c7e9437aaad42a8a2407afabdbfc096/37c3465b-9ab9-4181-8220-d38b79c27fe3', color:'00ff00')
+
 }
 
-void slackSuccess()
+void notifSuccess()
 {
-  slackSend(message: ":white_check_mark:  *BUILD SUCCESS mariadb-connector-c $BRANCH_NAME* : \n\n Lien du Build : <$RUN_DISPLAY_URL|JENKINS-#$BUILD_NUMBER> \n \n Cordialement, Jenkins", baseUrl: 'https://ives-workspace.slack.com/services/hooks/jenkins-ci/', channel: 'jenkins', color: 'good', teamDomain: 'ives-workspace.slack.com', token: 'gcwQATpI47iPCfTcPCcdR4ZR')
+  office365ConnectorSend(message: "✅:  *BUILD SUCCESS asteriskv $BRANCH_NAME* : \n\n Lien du Build  <$RUN_DISPLAY_URL|JENKINS-#$BUILD_NUMBER> \n \n Cordialement, Jenkins", status: 'Success', webhookUrl: 'https://outlook.office.com/webhook/a8d2a9bb-d91a-48b9-8774-a1907c4bce10@dda7df9a-8948-410e-8cd6-c830a3370b09/JenkinsCI/1c7e9437aaad42a8a2407afabdbfc096/37c3465b-9ab9-4181-8220-d38b79c27fe3', color:'00ff00')
 }
 
-void slackSuccessInstalled()
+void notifSuccessInstalled()
 {
-  slackSend(message: ":white_check_mark: *BUILD SUCCESS mariadb-connector-c $BRANCH_NAME* : \n\n Lien du Build : <$RUN_DISPLAY_URL|JENKINS-#$BUILD_NUMBER> \n \n Cordialement, Jenkins", baseUrl: 'https://ives-workspace.slack.com/services/hooks/jenkins-ci/', channel: 'jenkins', color: 'good', teamDomain: 'ives-workspace.slack.com', token: 'gcwQATpI47iPCfTcPCcdR4ZR')
+  office365ConnectorSend(message: "✅:  *BUILD SUCCESS asteriskv $BRANCH_NAME* : \n\n Lien du Build : $RUN_DISPLAY_URL|JENKINS-#$BUILD_NUMBER> \n \n Cordialement, Jenkins", status: 'Success', webhookUrl: 'https://outlook.office.com/webhook/a8d2a9bb-d91a-48b9-8774-a1907c4bce10@dda7df9a-8948-410e-8cd6-c830a3370b09/JenkinsCI/1c7e9437aaad42a8a2407afabdbfc096/37c3465b-9ab9-4181-8220-d38b79c27fe3', color:'00ff00')
 }
